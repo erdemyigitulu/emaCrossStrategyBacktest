@@ -5,6 +5,8 @@ from main import calculatEmaValues , calculateEma
 from experta import *
 from random import choice
 
+main15mcsv = "C:\\Users\\ERDO\\Desktop\\moneyMachine\\backTestDatas\\main15m.csv"
+signalscsv = "C:\\Users\\ERDO\\Desktop\\moneyMachine\\backTestDatas\\signals.csv"
 
 class TradeManagement(Fact):
     pass
@@ -91,15 +93,15 @@ class TradeEngine(KnowledgeEngine):
             self.earlyClosePosition = True
             print("İşlem ilk iki mumda terse hareket ettiği için erken kapatılıyor")
 
-        
-
-
+def percentageIncrease (firstValue,SecondValue):
+        percentage = ((SecondValue - firstValue) / firstValue) * 100
+        percentage = round(percentage,2)
+        return percentage
 
 def backTestofMachine () :
     main1scsv = "C:\\Users\\ERDO\\Desktop\\moneyMachine\\backTestDatas\\main1s.csv"
     data1s = np.genfromtxt(main1scsv, delimiter=',', usecols=(0, 1))
     np.set_printoptions(formatter={'float_kind': lambda x: "{:.2f}".format(x) if x % 1 else "{:.0f}".format(x)})
-    main15mcsv = "C:\\Users\\ERDO\\Desktop\\moneyMachine\\backTestDatas\\main15m.csv"
 
     def calculatingEma () :
         with open(main15mcsv) as csv_file:
@@ -161,7 +163,6 @@ def backTestofMachine () :
                 ema5Next = emaValues[index + 1]["ema5"]
                 ema8Next = emaValues[index + 1]["ema8"]
                 ema13Next = emaValues[index + 1]["ema13"]
-                print
                 if (ema8First < ema5First < ema13First) or (ema13First < ema5First < ema8First):
                     if ema5Next > ema8Next and ema5Next > ema13Next:
                         if signalDatas[-1][0] != "long":
@@ -171,12 +172,12 @@ def backTestofMachine () :
                         if signalDatas[-1][0] != "short":
                             lst = ["short", emaValues[index + 1]["timestamp"]]
                             signalDatas.append(lst)
-                elif ema5First > ema8First > ema13First:
+                elif (ema5First > ema8First > ema13First) or (ema5First > ema13First > ema8First):
                     if ema5Next < ema8Next and ema5Next < ema13Next:
                         if signalDatas[-1][0] != "short":
                             lst = ["short", emaValues[index + 1]["timestamp"]]
                             signalDatas.append(lst)
-                elif ema5First < ema8First < ema13First:
+                elif (ema5First < ema8First < ema13First) or (ema5First < ema13First < ema8First) :
                     if ema5Next > ema8Next and ema5Next > ema13Next :
                         if signalDatas[-1][0] != "long":
                             lst = ["long", emaValues[index + 1]["timestamp"]]
@@ -184,10 +185,6 @@ def backTestofMachine () :
         except :
             pass
         return signalDatas
-    def percentageIncrease (firstValue,SecondValue):
-        percentage = ((SecondValue - firstValue) / firstValue) * 100
-        percentage = round(percentage,2)
-        return percentage
     emaDatasOfDays , datas = calculatingEma()
     arrangementEma = arrangementOfEmaValues(emaDatasOfDays , datas)
     firstSignal , arrangementEmaFinal  = checkFirstSignal(arrangementEma)
@@ -210,14 +207,15 @@ def backTestofMachine () :
         engine.reset()
         for past in zip(range(timeStampGap, len(data1s)), data1s[(timeStampGap):]):
             currentValue = past[1][1]
-            percentage = percentageIncrease(firstValue,currentValue)
+            percentage = percentageIncrease(firstValue,currentValue)  
             if signal[0] == "short" and percentage != 0 :
                 percentage = -(percentage)
+            print( percentage , int(past[1][0]) , past[1][1] ) 
             if int(past[1][0]) - signal[1]  < 1800000 :
                 engine.reset()
                 engine.declare(TradeManagement(timeStamp = past[1][0] , price = past[1][1] , signal = signal[0]))
             engine.declare(TradeManagement(pnL=percentage))
-            engine.run()
+            engine.run() 
             if engine.earlyClosePosition :
                 if profitLoss == 0 :
                     profitLoss = money * (percentage - 0.045) * margin / 100
@@ -231,8 +229,7 @@ def backTestofMachine () :
                 else :
                     profitLoss = profitLoss + money * (percentage - 0.045) * margin / 100
                 break
-            print( percentage , int(past[1][0]) , past[1][1] )
-            
+          
             if engine.stopLossStage1 :
                 if profitLoss == 0 :
                     profitLoss = money * (percentage - 0.045) * margin / 100
@@ -264,7 +261,63 @@ def backTestofMachine () :
         money = money + profitLoss
         print(money)
 
-             
+def howMachineStartPosition () :
+    with open(main15mcsv) as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',')
+        main15m = []
+        for row in csv_reader:
+            data1 = [row[0],row[1],row[2],row[3],row[4]]
+            main15m.append(data1)
+        csv_file.close()
+    with open(signalscsv) as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',')
+        signals = []
+        for row in csv_reader:
+            try :
+                data2 = [row[0],row[1]]
+                signals.append(data2)
+            except :
+                pass
+        csv_file.close()
+    datas = []
+    for signal in signals :
+        data = []
+        for index , candle in enumerate(main15m) :
+            if int(candle[0]) == int(signal[1]):
+                if signal[0] == "long" :
+                    variant = 3
+                else :
+                    variant = 2
+                print("----------------------------------")
+                print(candle , signal)
+                signalsTimeClose = candle[4]
+                enterenceSignalLow = main15m[index + 1][variant]
+                print(signalsTimeClose , enterenceSignalLow )
+                percentageOfClosetoLow = percentageIncrease(float(signalsTimeClose) , float(enterenceSignalLow))
+                if signal[0] == "long" :
+                    percentageOfClosetoLow = -(percentageOfClosetoLow)
+                data = {"signalTimeStamp": candle[0] , "signalsTimeClose" : candle[4] , "enterenceSignalLow": enterenceSignalLow , "percentageIncrease" : percentageOfClosetoLow }
+                print(data)
+                print("----------------------------------")
+                datas.append(data)
+                break
+            
+        
+        
+        
+                
+howMachineStartPosition()
+
+
+        
+    
+
+
 
     
-backTestofMachine()
+    
+            
+
+
+    
+# backTestofMachine()
