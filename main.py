@@ -5,7 +5,6 @@ import time
 import json
 
 baseUrl = "https://fapi.binance.com/"
-
 def getCandles (symbol,interval,limit):
     params = {
         "symbol" : symbol,
@@ -16,10 +15,7 @@ def getCandles (symbol,interval,limit):
     response = requests.get(url, params).json()
     return response
 
-def getCloseTimes (symbol,intervalmin):
-    candleCount = int((60 / intervalmin) * 24 * 15)
-    interval = str(intervalmin) + "m"
-    candles = getCandles(symbol,interval,candleCount)
+def getCloseTimes (candles):
     data = []
     for candle in candles :
         datas = {"timeStamp":int(candle[0]), "closeTime" : float(candle[4])}
@@ -41,26 +37,24 @@ def calculateEma(dataOfEma,day):
         emaValues.append(ema)
     return emaValues 
 
-def calculatEmaValues () :
+def calculateEmaValues (closeTimes) :
     dayOfEma = [5,8,13]
     emaDatasOfDays = []
     for day in dayOfEma :
-        dataOfEma = getCloseTimes("btcusdt",15)
-        emaDataOfDay = calculateEma(dataOfEma,day)
+        emaDataOfDay = calculateEma(closeTimes,day)
         emaDatasOfDays.append(emaDataOfDay)
     return emaDatasOfDays 
- 
-def arrangementOfEmaValues () :
-    emaValues = calculatEmaValues ()
+
+def arrangementOfEmaValues (emaValues , candles) :
     ema5List = emaValues[0]
     ema8List = emaValues[1]
     ema13List = emaValues[2]
+    print(len(ema13List),len(ema5List),len(ema8List))
     minSize = min(len(ema5List), len(ema8List), len(ema13List))
     ema5List = ema5List[-minSize:]
     ema8List = ema8List[-minSize:]
     ema13List = ema13List[-minSize:]
     zipList = zip(ema5List, ema8List, ema13List)
-    candles = getCandles("btcusdt","15m",minSize)
     lastTimeStamp = int(candles[-1][0])
     timeStampgap = int(candles[-1][0]) - int(candles[-2][0])
     firstTimeStamp = lastTimeStamp - ((minSize * timeStampgap) - timeStampgap)
@@ -113,7 +107,6 @@ def getSignalsTime () :
             ema5Next = emaValues[index + 1]["ema5"]
             ema8Next = emaValues[index + 1]["ema8"]
             ema13Next = emaValues[index + 1]["ema13"]
-            print
             if (ema8First < ema5First < ema13First) or (ema13First < ema5First < ema8First):
                 if ema5Next > ema8Next and ema5Next > ema13Next:
                     if signalDatas[-1][0] != "long":
@@ -164,4 +157,15 @@ def getCandleDepo ():
         with open(markPriceDepoJson2, 'w' , encoding='utf-8' ) as json_file:
             json.dump(markPriceDepo, json_file, indent=4, separators=(',',': '),ensure_ascii=False)
         startTime = endTime + 87000000
+
+# run = True
+# while run :
+#     print("şimdi")
+#     candles = getCandles("BTCUSDT","15m",1000)
+#     closeTimes = getCloseTimes (candles)
+#     emaValues = calculateEmaValues(closeTimes)
+#     liveEmaValues = { "ema5":emaValues[0][-1] , "ema8":emaValues[1][-1], "ema13":emaValues[2][-1]}
+#     response2 = arrangementOfEmaValues(emaValues , candles)
+#     print(liveEmaValues)
+    
 
