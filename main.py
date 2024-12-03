@@ -5,6 +5,7 @@ import time
 import json
 
 baseUrl = "https://fapi.binance.com/"
+
 def getCandles (symbol,interval,limit):
     params = {
         "symbol" : symbol,

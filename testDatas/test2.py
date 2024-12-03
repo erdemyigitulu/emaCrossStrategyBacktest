@@ -1,8 +1,10 @@
 import csv
 import json
 import numpy as np
-from main import calculateEma , getCloseTimes , calculateEmaValues , arrangementOfEmaValues , isCrossEmaValues
+from main import calculateEma
+from random import choice
 import pandas as pd
+import os
 
 main15mcsv = "C:\\Users\\ERDO\\Desktop\\moneyMachine\\backTestDatas\\main15m.csv"
 signalscsv = "C:\\Users\\ERDO\\Desktop\\moneyMachine\\backTestDatas\\signals.csv"
@@ -43,14 +45,13 @@ class Machine():
     def stage2(self):
         self.stage1Start = False
         if self.stage2Start :
-            # self.entryStop = True
+            self.entryStop = True
             self.sellPoint1 = False
             self.sellPoint2 = True
 
     def stage3(self):
         self.stage2Start = False
         if self.stage3Start:
-            self.entryStop = True
             self.sellPoint2 = False
             self.sellPoint3 = True
             if (self.currentPnL < 0.65) and not self.stage3Phase1 :
@@ -72,7 +73,8 @@ def percentageIncrease (firstValue,SecondValue,signal):
             percentage = -(percentage)
         return percentage
 
-def pullData15m (main15mcsv):
+
+def pullData15m ():
     with open(main15mcsv) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         datas = []
@@ -82,42 +84,15 @@ def pullData15m (main15mcsv):
         csv_file.close()
         return datas
 
-def isCrossEmaValues (emaValues):
-    emaValues = arrangementOfEmaValues ()
-    emaLast = emaValues[-2]
-    emaSecondLast = emaValues[-3]
-    if emaSecondLast["ema5"] > emaSecondLast["ema8"] or emaSecondLast["ema5"] > emaSecondLast["ema13"]: 
-        if emaLast["ema5"] < emaLast["ema8"] and emaLast["ema5"] < emaLast["ema13"]:
-            print("SHORTLA ")
-    elif emaSecondLast["ema5"] < emaSecondLast["ema8"] or emaSecondLast["ema5"] < emaSecondLast["ema13"] :
-        if emaLast["ema5"] > emaLast["ema8"] and emaLast["ema5"] > emaLast["ema13"]:
-            print("LONGLA")
-
-
 def backTestofMachine () :
-    years = [2020,2021,2022,2023,2024]
-    months = [1,2,3,4,5,6,7,8,9,10,11,12]
-    for year in years :
-        for month in months :
-            if month < 10 :
-                date = f"BTCUSDT-15m-{year}-0{month}"
-            else :
-                date = f"BTCUSDT-15m-{year}-{month}"           
-    datas15m = f"C:\\Users\\ERDO\\Desktop\\moneyMachine\\backTestDatas\\datas\\BTC\\15m\\{date}\\{date}.csv"  
-    data15m = pullData15m(datas15m)
-    closeTimes = getCloseTimes(data15m)
-    emaValues = calculateEmaValues(closeTimes)
-    isCrossEmaValues(emaValues)
-    getSignalsTime()
-
-
     resultscsv = "C:\\Users\\ERDO\\Desktop\\moneyMachine\\backTestDatas\\results.csv"
+
     main1parquet = "C:\\Users\\ERDO\\Desktop\\moneyMachine\\backTestDatas\\main1s.parquet"
     df = pd.read_parquet(main1parquet)
     data1s = df.to_numpy()
     np.set_printoptions(formatter={'float_kind': lambda x: "{:.2f}".format(x) if x % 1 else "{:.0f}".format(x)})
     margin = 30
-    datas = pullData15m(main15mcsv)
+    datas = pullData15m()
     def calculateAvaregePrice(islemler):
         totalCost = sum(fiyat * miktar for fiyat, miktar in islemler)
         totalAmount = sum(miktar for _, miktar in islemler)
@@ -295,7 +270,7 @@ def backTestofMachine () :
             if machine.stage3Start :
                 machine.stage3()
             if machine.stopLoss and pnL <= -0.2:
-                profitLoss = moneyProfitLossFunc(profitLoss , totalAmount , pnL , portion)
+                profitLoss = moneyProfitLossFunc(0 , totalAmount , pnL , portion)
                 message = "STOPKE"
                 messages.append(message)
                 resultDatas.append({"signal":signal[0] , "signalTimeStamp":signal[1] , "startProcessTimeStamp":past[1][0] , "profitLoss":profitLoss })

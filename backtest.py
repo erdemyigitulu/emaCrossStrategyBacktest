@@ -325,10 +325,6 @@ def backTestofMachine () :
             
             
 
-
-
-
-
             
 
 def howMachineStartPosition () :
