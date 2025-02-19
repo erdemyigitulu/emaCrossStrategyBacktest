@@ -3,6 +3,7 @@ import requests
 from urllib.parse import urljoin
 import time
 import json
+import csv
 
 baseUrl = "https://fapi.binance.com/"
 
@@ -19,7 +20,7 @@ def getCandles (symbol,interval,limit):
 def getCloseTimes (candles):
     data = []
     for candle in candles :
-        datas = {"timeStamp":int(candle[0]), "closeTime" : float(candle[4])}
+        datas = {"timeStamp":candle["timeStamp"], "closeTime" : candle["closeTime"]}
         data.append(datas)
     return data
 
@@ -67,8 +68,7 @@ def arrangementOfEmaValues (emaValues , candles) :
     del emaValues[:50]
     return emaValues
 
-def isCrossEmaValues ():
-    emaValues = arrangementOfEmaValues ()
+def isCrossEmaValues (emaValues):
     emaLast = emaValues[-2]
     emaSecondLast = emaValues[-3]
     if emaSecondLast["ema5"] > emaSecondLast["ema8"] or emaSecondLast["ema5"] > emaSecondLast["ema13"]: 
@@ -78,8 +78,7 @@ def isCrossEmaValues ():
         if emaLast["ema5"] > emaLast["ema8"] and emaLast["ema5"] > emaLast["ema13"]:
             print("LONGLA")
 
-def checkPositionSignal () :
-    emaValues = arrangementOfEmaValues ()
+def checkPositionSignal (emaValues) :
     for index , value in enumerate(emaValues) :
         ema5 = value["ema5"]
         ema8 = value["ema8"]
@@ -96,8 +95,7 @@ def checkPositionSignal () :
         emaValues = emaValues[index:]
     return whichSideOnSignal , emaValues
    
-def getSignalsTime () :
-    firstSide , emaValues = checkPositionSignal ()
+def getSignalsTime (firstSide , emaValues , date) :
     signalDatas = []
     signalDatas.append(firstSide)
     try :
@@ -129,8 +127,8 @@ def getSignalsTime () :
                         signalDatas.append(lst)
     except :
         pass
-    print(signalDatas)
 
+    return signalDatas
 def getCandleDepo ():
     url = urljoin(baseUrl,"/fapi/v1/time")
     response = requests.get(url).json()
