@@ -32,15 +32,9 @@ class Machine():
 
     def stage1(self):
         if self.stage1Start :
-            # if (self.currentPnL < 0.2) and not self.stage1Phase1 :
-            #     self.stopLoss = True
-            #     self.sellPoint1 = True
-            #     self.protectProcess1 = True
-            # else :
-                self.stopLoss = True
-                # self.entryStop = True
-                self.sellPoint1 = True
-                self.stage1Phase1 = True
+            self.stopLoss = True
+            self.sellPoint1 = True
+            self.stage1Phase1 = True          
   
     def stage2(self):
         self.stopLoss = False
@@ -193,8 +187,8 @@ def backTestofMachine () :
                 except :
                     break
                 startProcessTimeStamp = int(signal[1]) + 900000
-                timestamp_column = data1s[:, 0]  # 0. sütun timestamp
-                start_index = np.argmax(timestamp_column >= startProcessTimeStamp)  # İlk eşleşen ya da daha büyük timestamp'in indeksi
+                timestamp_column = data1s[:, 0]
+                start_index = np.argmax(timestamp_column >= startProcessTimeStamp)
                 firstValue = data1s[start_index][1]
                 purchasePoints = findPurchasePoints(firstValue,signal[0])
                 startProcessValue = (firstValue,12000)
@@ -222,10 +216,7 @@ def backTestofMachine () :
                                 purchasedPoints.append((point,seperateMoney))
                     avaregePrice , totalAmount = calculateAvaregePrice(purchasedPoints)
                     pnL = percentageIncrease(avaregePrice , currentValue , signal[0] )
-                    # updatedEma = updateEma(currentValue , signal , organisedEmaValues)
-                    # isFirstCandleInProcess = int(currentTimeStamp) - int(startProcessTimeStamp)
-                    # print(pnL,currentTimeStamp,currentValue,firstValue,signal[0], machine.increaseStopPoint1,machine.increaseStopPoint2,machine.increaseStopPoint3,machine.stage3Phase2,machine.stage3Phase1)
-                    # print(pnL,currentTimeStamp,currentValue,firstValue,avaregePrice,f"SL:{machine.stopLoss}" ,f"ET:{machine.entryStop}",f"S1:{machine.stage1Start}" ,f"S2:{machine.stage2Start}",f"S3:{machine.stage3Start}",f"SP1:{machine.sellPoint1}" ,f"SP2:{machine.sellPoint2}",f"SP3:{machine.sellPoint3}",f"IP1:{machine.increaseStopPoint1}" ,f"IP2:{machine.increaseStopPoint2}",f"IP3:{machine.increaseStopPoint3}")
+                   
                     print(pnL,currentTimeStamp,currentValue,firstValue)
                     machine.currentPnL = pnL
                     if machine.stage1Start :
@@ -243,11 +234,6 @@ def backTestofMachine () :
                         
                         break
                     if machine.entryStop and pnL <= 0.04 :
-                        # if machine.stage1Start :
-                        #     message = "Stage 1 de entry stop"
-                        #     messages.append(message)
-                        #     print("Stage 1 de entry stop")
-                        # else:
                         message = "Stage 2 de 0.3 den kar alıp entry stop"
                         messages.append(message)
                         print("Stage 2 de entry stop")
@@ -303,13 +289,6 @@ def backTestofMachine () :
                         messages.append(message)
                         resultDatas.append({"signal":signal[0] , "signalTimeStamp":signal[1] , "startProcessTimeStamp":startProcessTimeStamp , "profitLoss":profitLoss, "totalAmount" : totalAmount })
                         break
-                    # if updatedEma and isFirstCandleInProcess < 900000 :
-                    #     profitLoss = moneyProfitLossFunc(profitLoss , totalAmount , pnL , portion )
-                    #     message = "ilk mumda ema yönü değiştiği için işlemi erkenden kapatıyorum"
-                    #     messages.append(message)
-                    #     resultDatas.append({"signal":signal[0] , "signalTimeStamp":signal[1] , "startProcessTimeStamp":startProcessTimeStamp , "profitLoss":profitLoss, "totalAmount" : totalAmount })
-                    #     print(updatedEma , isFirstCandleInProcess ,currentTimeStamp,startProcessTimeStamp,past)
-                    #     break
                     if a :
                         print("Stage1 başladı")
                         a = False

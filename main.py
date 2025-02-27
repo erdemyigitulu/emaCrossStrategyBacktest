@@ -3,7 +3,6 @@ import requests
 from urllib.parse import urljoin
 import time
 import json
-import csv
 
 baseUrl = "https://fapi.binance.com/"
 
@@ -157,14 +156,5 @@ def getCandleDepo ():
             json.dump(markPriceDepo, json_file, indent=4, separators=(',',': '),ensure_ascii=False)
         startTime = endTime + 87000000
 
-# run = True
-# while run :
-#     print("şimdi")
-#     candles = getCandles("BTCUSDT","15m",1000)
-#     closeTimes = getCloseTimes (candles)
-#     emaValues = calculateEmaValues(closeTimes)
-#     liveEmaValues = { "ema5":emaValues[0][-1] , "ema8":emaValues[1][-1], "ema13":emaValues[2][-1]}
-#     response2 = arrangementOfEmaValues(emaValues , candles)
-#     print(liveEmaValues)
     
 
