@@ -244,28 +244,28 @@ def backTestofMachine () :
                         break
                     if machine.entryStop and pnL <= 0.04 :
                         # if machine.stage1Start :
-                        #     message = "Stage 1 de entry stop yaptım kanks"
+                        #     message = "Stage 1 de entry stop"
                         #     messages.append(message)
-                        #     print("Stage 1 de entry stop yaptım kanks")
+                        #     print("Stage 1 de entry stop")
                         # else:
-                        message = "Stage 2 de 0.3 den kar alıp entry stop yaptım kanks"
+                        message = "Stage 2 de 0.3 den kar alıp entry stop"
                         messages.append(message)
-                        print("Stage 2 de entry stop yaptım kanks")
+                        print("Stage 2 de entry stop")
                         resultDatas.append({"signal":signal[0] , "signalTimeStamp":signal[1] , "startProcessTimeStamp":startProcessTimeStamp , "profitLoss":profitLoss, "totalAmount" : totalAmount })
                         break
                     if machine.stage1Start and machine.sellPoint1 and pnL >= 0.2 and aa:
                         portion = portion - 0.5
-                        print("stage1 bitti kar aldım devamke")
+                        print("stage1 bitti kar aldım")
                         profitLoss = moneyProfitLossFunc(profitLoss , totalAmount , pnL , 0.5 )
-                        message = "stage1 bitti 0.3 den kar aldım devamke"
+                        message = "stage1 bitti 0.3 den kar aldım"
                         messages.append(message)
                         
                         aa = False
                     if machine.stage2Start and machine.sellPoint2 and pnL >= 0.5 and bb :
                         portion = portion - 0.25
-                        print("stage2 bitti kar aldım devamke")
+                        print("stage2 bitti kar aldım")
                         profitLoss = moneyProfitLossFunc(profitLoss , totalAmount , pnL , 0.25 )
-                        message = "stage2 bitti 0.5 den kar aldım devamke"
+                        message = "stage2 bitti 0.5 den kar aldım"
                         messages.append(message)
                         bb = False
                     if machine.stage3Start and machine.sellPoint3 and pnL >= 1 :
