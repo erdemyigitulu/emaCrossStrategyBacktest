@@ -1,3 +1,10 @@
+def backtestConfigs () :
+    seperateMoney = 150
+    profitLoss = 0
+    portion = 1
+    messages = []
+    entryMoney = 12000
+    return seperateMoney , profitLoss , portion , messages , entryMoney
 
 years = [2020,2021,2022,2023,2024]
 months = [1,2,3,4,5,6,7,8,9,10,11,12]
@@ -14,7 +21,4 @@ def fixedMonths(month,year) :
     csv1s = f"C:\\Users\\ERDO\\Desktop\\emaCrossStrategyBacktest\\backTestDatas\\datas\\BTC\\1s\\{date1s}\\{date1s}.csv"
     parquet1s = f"C:\\Users\\ERDO\\Desktop\\emaCrossStrategyBacktest\\backTestDatas\\datas\\BTC\\1s\\{date1s}\\{date1s}.parquet"
 
-    return datas15m , resultscsv , csv1s , parquet1s , date
-
-main15mcsv = "C:\\Users\\ERDO\\Desktop\\emaCrossStrategyBacktest\\backTestDatas\\main15m.csv"
-signalscsv = "C:\\Users\\ERDO\\Desktop\\emaCrossStrategyBacktest\\backTestDatas\\signals.csv"
+    return datas15m , resultscsv , csv1s , parquet1s

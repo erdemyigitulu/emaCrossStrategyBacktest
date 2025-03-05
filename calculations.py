@@ -108,7 +108,7 @@ def checkPositionSignal (emaValues) :
         emaValues = emaValues[index:]
     return whichSideOnSignal , emaValues
    
-def getSignalsTime (firstSide , emaValues , date) :
+def getSignalsTime (firstSide , emaValues) :
     signalDatas = []
     signalDatas.append(firstSide)
     try :
@@ -171,5 +171,25 @@ def getCandleDepo ():
             json.dump(markPriceDepo, json_file, indent=4, separators=(',',': '),ensure_ascii=False)
         startTime = endTime + 87000000
 
-    
+def percentageIncrease (firstValue,SecondValue,signal):
+        percentage = ((SecondValue - firstValue) / firstValue) * 100
+        percentage = round(percentage,2)
+        if signal == "short" :
+            percentage = -(percentage)
+        return percentage    
 
+def calculateAvaregePrice(islemler):
+    totalCost = sum(fiyat * miktar for fiyat, miktar in islemler)
+    totalAmount = sum(miktar for _, miktar in islemler)
+    ortalama = totalCost / totalAmount
+    return ortalama , totalAmount
+
+def moneyProfitLossFunc(profitLoss , money , pnL , portion):
+    if profitLoss == 0 :
+        profitLoss = ((money * (100 + pnL)/100 )- money) * portion
+        print(profitLoss)
+    else :
+        profitLoss = profitLoss + ((money * (100 + pnL)/100 )- money) * portion
+        print(profitLoss)
+    print(profitLoss , money , pnL, portion )
+    return profitLoss
