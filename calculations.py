@@ -3,6 +3,7 @@ import requests
 from urllib.parse import urljoin
 import time
 import json
+import csv
 
 baseUrl = "https://fapi.binance.com/"
 
@@ -15,6 +16,19 @@ def getCandles (symbol,interval,limit):
     url = urljoin(baseUrl,"fapi/v1/klines")
     response = requests.get(url, params).json()
     return response
+
+def pullData15m (main15mcsv):
+    with open(main15mcsv) as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',')
+        datas = []
+        candleDatas = []
+        for row in csv_reader:
+            candle = row
+            data = {"timeStamp":int(row[0] ), "closeTime": float(row[4]),"openTime": float(row[1])}
+            datas.append(data)
+            candleDatas.append(candle)
+        csv_file.close()
+        return datas , candleDatas
 
 def getCloseTimes (candles):
     data = []
@@ -128,6 +142,7 @@ def getSignalsTime (firstSide , emaValues , date) :
         pass
 
     return signalDatas
+
 def getCandleDepo ():
     url = urljoin(baseUrl,"/fapi/v1/time")
     response = requests.get(url).json()

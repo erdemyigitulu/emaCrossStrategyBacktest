@@ -1,12 +1,9 @@
 import csv
 import json
 import numpy as np
-from main import calculateEma , getCloseTimes , calculateEmaValues , arrangementOfEmaValues , isCrossEmaValues , checkPositionSignal , getSignalsTime
-import pandas as pd
-import os
-
-main15mcsv = "C:\\Users\\ERDO\\Desktop\\moneyMachine\\backTestDatas\\main15m.csv"
-signalscsv = "C:\\Users\\ERDO\\Desktop\\moneyMachine\\backTestDatas\\signals.csv"
+from calculations import calculateEma
+from config import fixedMonths, main15mcsv , years , months
+from utils import convertCsvToParquet , extractSignals , findPurchasePoints 
 
 class Machine():
     def __init__(self):
@@ -68,19 +65,6 @@ def percentageIncrease (firstValue,SecondValue,signal):
             percentage = -(percentage)
         return percentage
 
-def pullData15m (main15mcsv):
-    with open(main15mcsv) as csv_file:
-        csv_reader = csv.reader(csv_file, delimiter=',')
-        datas = []
-        candleDatas = []
-        for row in csv_reader:
-            candle = row
-            data = {"timeStamp":int(row[0] ), "closeTime": float(row[4]),"openTime": float(row[1])}
-            datas.append(data)
-            candleDatas.append(candle)
-        csv_file.close()
-        return datas , candleDatas
-
 def calculateAvaregePrice(islemler):
     totalCost = sum(fiyat * miktar for fiyat, miktar in islemler)
     totalAmount = sum(miktar for _, miktar in islemler)
@@ -95,19 +79,7 @@ def moneyProfitLossFunc(profitLoss , money , pnL , portion):
         print(profitLoss)
     print(profitLoss , money , pnL, portion )
     return profitLoss
-def findPurchasePoints(currentValue,signal):
-    valuesList = []
-    testValue = currentValue
-    for _ in range(20):
-        accumulateProcessPointValue = currentValue * 0.005 / 100
-        if signal == "long":                    
-            pointValue = testValue - accumulateProcessPointValue
-            valuesList.append(round(pointValue,2))
-        else : 
-            pointValue = testValue + accumulateProcessPointValue
-            valuesList.append(round(pointValue,2))
-        testValue = pointValue
-    return valuesList
+
 def calculatingCurrentEma(timeStamp , price , signal ):
     with open(main15mcsv) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
@@ -145,35 +117,12 @@ def updateEma(newPrice , signal , organisedEmaValues ):
 
     return result
 def backTestofMachine () :
-    years = [2020,2021,2022,2023,2024]
-    months = [1,2,3,4,5,6,7,8,9,10,11,12]
-
+   
     for year in years :
         for month in months :
-            if month < 10 :
-                date = f"BTCUSDT-15m-{year}-0{month}"
-                date1s = f"BTCUSDT-1s-{year}-0{month}"
-            else :
-                date = f"BTCUSDT-15m-{year}-{month}"  
-                date1s = f"BTCUSDT-1s-{year}-{month}"        
-            datas15m = f"C:\\Users\\ERDO\\Desktop\\moneyMachine\\backTestDatas\\datas\\BTC\\15m\\{date}\\{date}.csv"  
-            data15m , candles= pullData15m(datas15m)
-            closeTimes = getCloseTimes(data15m)
-            emaValues = calculateEmaValues(closeTimes)
-            organisedEmaValues = arrangementOfEmaValues(emaValues , candles)
-            firstSignal , organisedEmaValues = checkPositionSignal(organisedEmaValues)
-            signals = getSignalsTime(firstSignal , organisedEmaValues , date)
-
-            csv1s = f"C:\\Users\\ERDO\\Desktop\\moneyMachine\\backTestDatas\\datas\\BTC\\1s\\{date1s}\\{date1s}.csv"
-            parquet1s = f"C:\\Users\\ERDO\\Desktop\\moneyMachine\\backTestDatas\\datas\\BTC\\1s\\{date1s}\\{date1s}.parquet"
-            if not os.path.exists(parquet1s):
-                df = pd.read_csv(csv1s, usecols=[0, 1])
-                df.to_parquet(parquet1s, index=False)
-            else:
-                df = pd.read_parquet(parquet1s)
-            data1s = df.to_numpy()
-            np.set_printoptions(formatter={'float_kind': lambda x: "{:.2f}".format(x) if x % 1 else "{:.0f}".format(x)})
-
+            datas15m , resultscsv , csv1s , parquet1s , date  = fixedMonths(month,year)
+            signals = extractSignals(datas15m , date)
+            data1s = convertCsvToParquet(csv1s,parquet1s) 
             resultDatas = []
             totalpnL = 0
             profit = 0
@@ -319,7 +268,7 @@ def backTestofMachine () :
                 resultDatas[-1]["totalProfit"] = (profit,profits)
                 resultDatas[-1]["totalLoss"] = (loss,losss)
                 resultDatas[-1]["totalEntryStop"] = entryStops
-                resultscsv = f"C:\\Users\\ERDO\\Desktop\\moneyMachine\\backTestDatas\\results\\01results{date}.csv"
+               
 
                 with open(resultscsv, 'w' , encoding='utf-8' ) as json_file:
                     json.dump(resultDatas, json_file, indent=4, separators=(',',': '),ensure_ascii=False)
