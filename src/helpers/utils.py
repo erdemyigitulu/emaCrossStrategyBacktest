@@ -1,15 +1,21 @@
 import pandas as pd
 import os
 import numpy as np
-
+from data_access.candles_data_access import CandlesDataAccess
 
 class Utils:
-    def convertCsvToParquet(csv1s, parquet1s):
-        if not os.path.exists(parquet1s):
-            df = pd.read_csv(csv1s, usecols=[0, 1])
-            df.to_parquet(parquet1s, index=False)
+
+    def __init_ (self):
+        self.candles_data_access = CandlesDataAccess
+
+    def __convertCsvToParquet(self , month, year):
+        csv = self.candles_data_access.get1sCsvPath(month , year)
+        parquet = self.candles_data_access.get1sParquetPath(month , year)
+        if not os.path.exists(parquet):
+            df = pd.read_csv(csv, usecols=[0, 1])
+            df.to_parquet(parquet, index=False)
         else:
-            df = pd.read_parquet(parquet1s)
+            df = pd.read_parquet(parquet)
         data1s = df.to_numpy()
         np.set_printoptions(
             formatter={
@@ -19,29 +25,8 @@ class Utils:
             }
         )
         return data1s
+    
+    def get1sData (self, month, year):
+        _1sData = self.__convertCsvToParquet(self , month, year)
+        return _1sData
 
-    def arrangementOfEmaValues(emaValues, candles):
-        ema5List = emaValues[0]
-        ema8List = emaValues[1]
-        ema13List = emaValues[2]
-        print(len(ema13List), len(ema5List), len(ema8List))
-        minSize = min(len(ema5List), len(ema8List), len(ema13List))
-        ema5List = ema5List[-minSize:]
-        ema8List = ema8List[-minSize:]
-        ema13List = ema13List[-minSize:]
-        zipList = zip(ema5List, ema8List, ema13List)
-        lastTimeStamp = int(candles[-1][0])
-        timeStampgap = int(candles[-1][0]) - int(candles[-2][0])
-        firstTimeStamp = lastTimeStamp - ((minSize * timeStampgap) - timeStampgap)
-        emaValues = []
-        for arrange in zipList:
-            emaData = {
-                "timestamp": firstTimeStamp,
-                "ema5": arrange[0],
-                "ema8": arrange[1],
-                "ema13": arrange[2],
-            }
-            firstTimeStamp = firstTimeStamp + timeStampgap
-            emaValues.append(emaData)
-        del emaValues[:50]
-        return emaValues

@@ -60,13 +60,6 @@ class Machine:
                 self.stage3Phase3 = True
 
 
-def percentageIncrease(firstValue, SecondValue, signal):
-    percentage = ((SecondValue - firstValue) / firstValue) * 100
-    percentage = round(percentage, 2)
-    if signal == "short":
-        percentage = -(percentage)
-    return percentage
-
 
 def moneyProfitLossFunc(profitLoss, money, pnL, portion):
     if profitLoss == 0:

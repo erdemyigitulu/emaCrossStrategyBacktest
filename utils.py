@@ -10,7 +10,7 @@ def extractSignals(datas15m , date):
     emaValues = calculateEmaValues(closeTimes)
     organisedEmaValues = arrangementOfEmaValues(emaValues , candles)
     firstSignal , organisedEmaValues = checkPositionSignal(organisedEmaValues)
-    signals = getSignalsTime(firstSignal , organisedEmaValues , date)
+    signals = getSignalsTime(firstSignal , organisedEmaValues )
     return signals
 
 def convertCsvToParquet(csv1s,parquet1s) :

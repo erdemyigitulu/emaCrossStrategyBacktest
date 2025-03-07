@@ -108,7 +108,7 @@ def checkPositionSignal (emaValues) :
         emaValues = emaValues[index:]
     return whichSideOnSignal , emaValues
    
-def getSignalsTime (firstSide , emaValues , date) :
+def getSignalsTime (firstSide , emaValues) :
     signalDatas = []
     signalDatas.append(firstSide)
     try :
