@@ -43,6 +43,32 @@ class CalculaterService:
         print(profitLoss, money, pnL, portion)
         return profitLoss
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     # def calculatingCurrentEma(self , timeStamp, price, signal):
     #     with open(main15mcsv) as csv_file:
     #         csv_reader = csv.reader(csv_file, delimiter=",")

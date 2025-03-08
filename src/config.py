@@ -8,9 +8,10 @@ class Config :
         self.buyPointsCount = 20  #Toplam kaç adet işlem yapılacağı
         self.totalEntryAmount = 12000
         self.seperatedMoneyAmount = 150
-        self.settingsStages()
+        self.__settingsStages()
+        self.__stage3PhasesGaps()
 
-    def settingsStages(self):
+    def __settingsStages(self):  #Değerler yüzde olarak verilmiştir.
         self.stopLossPnl = -0.2
         self.entryStopPnl = 0.04
         self.stage1StartPnl = 0.2
@@ -20,9 +21,9 @@ class Config :
         self.increaseStopPoint2Pnl = 0.34
         self.increaseStopPoint3Pnl = 0.54
 
-    def stage3PhasesGaps(self):
+    def __stage3PhasesGaps(self):
         self.gap1 = 0.65 #Stage 3 başlama noktasından bu değere kadar increaseStopPoint1 devrede
-        self.gap2 = 0.8 #gap 1 değerinden bu değere kadar increaseStopPoint devrede ve bu değerin üstünde increaseStopPoint3 devrede. 
+        self.gap2 = 0.8 #gap1 değerinden bu değere kadar increaseStopPoint2 devrede ve bu değerin üstünde increaseStopPoint3 devrede. 
 
 
 
