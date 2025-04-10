@@ -1,56 +1,57 @@
-
+from data_access.write_csv_data import WriteCsvData
 
 
 class InformationService ():
     def __init__ (self):
-        pass
+        self.message = ""
+        self.write_csv_data = WriteCsvData()
+        self.totalpnL = 0
+        self.totalProfitAmount = 0
+        self.totalWinningTrades = 0
+        self.totalLossAmount = 0
+        self.totalLosingTrades = 0
+        self.totalEntryStopTrades = 0
 
-    def __informationHead(self, infoStage):
-        if infoStage == "stopLoss":
+    def informationHead(self, informationOfStage):
+        if informationOfStage == "stopLoss":
             self.message = "StopLoss has came true"
-        if infoStage == "entryStop":
+        if informationOfStage == "entryStop":
             self.message = "entryStop has came true"
-        if infoStage == "stage1":
-            self.message = f"Stage1 is done. Some profit is got {"aa"}"
-        if infoStage == "stage2":
-            self.message = f"Stage2 is done. Some profit is got {"aa"}"
-        if infoStage == "stage3":
-            self.message = f"Stage3 is done.Some profit is got {"aa"}"
-        if infoStage == "increaseStopPoint1":
+        if informationOfStage == "stage1":
+            self.message = f"Stage1 is done. Some profit is got"
+        if informationOfStage == "stage2":
+            self.message = f"Stage2 is done. Some profit is got"
+        if informationOfStage == "stage3":
+            self.message = f"Stage3 is done.Some profit is got"
+        if informationOfStage == "increaseStopPoint1":
             self.message = f"Stage3 is continuing and process is quitting in first upper entrystop point"
-        if infoStage == "increaseStopPoint2":
+        if informationOfStage == "increaseStopPoint2":
             self.message = f"Stage3 is continuing and process is quitting in second upper entrystop point"
-        if infoStage == "increaseStopPoint3":
+        if informationOfStage == "increaseStopPoint3":
             self.message = f"Stage3 is continuing and process is quitting in third upper entrystop point"
-        if infoStage == "cameNewSignal":
+        if informationOfStage == "cameNewSignal":
             self.message = f"New signal has came and process is quitting"
+        return self.message
         
-    def createProcessInfo(self,infoStage,signalSide,signalTimeStamp,startProcessTimestamp,profitLoss,totalAmount,currentTimeStamp, purchasedPoints, messages):
-        self.__informationHead(self, infoStage)
-        self.resultDatas = []
-        purchasedPoints = "".join(
-                        [f"({x[0]}, {x[1]})" for x in purchasedPoints]
-                    )
-        self.resultDatas.append(
-                {
-                    "signal": signalSide,
-                    "signalTimeStamp": signalTimeStamp,
-                    "startProcessTimestamp": startProcessTimestamp,
-                    "profitLoss": profitLoss,
-                    "totalAmount": totalAmount,
-                    "processEndTimeStamp" : currentTimeStamp,
-                    "purchasedPoints" : purchasedPoints,
-                    "situationOfProcess" : messages
-                }
-            )
-        return self.resultDatas
-    
-    def createMonthlyStatsInfo(self,resultData, totalpnL, profit, profitsCount, loss, lossesCount,entryStopsCount ):
-        resultData[-1]["totalPnL"] = totalpnL
-        resultData[-1]["totalProfit"] = (profit, profitsCount)
-        resultData[-1]["totalLoss"] = (loss, lossesCount)
-        resultData[-1]["totalEntryStop"] = entryStopsCount
+    def __createMonthlyStatsInfo(self,resultData, totalpnL, totalProfitAmount, totalWinningTrades, totalLossAmount, totalLosingTrade,totalEntryStopTrades ):
+        resultData['totalPnL'] = totalpnL
+        resultData['totalProfit'] = (totalProfitAmount, totalWinningTrades)
+        resultData['totalLoss'] = (totalLossAmount, totalLosingTrade)
+        resultData['totalEntryStop'] = totalEntryStopTrades
         return resultData
+    
+    def monthlyStats(self, resultDatas, profitLoss, month, year):
+        if profitLoss < 0:
+            self.totalLossAmount = self.totalLossAmount + profitLoss
+            self.totalLosingTrades = self.totalLosingTrades + 1
+        elif profitLoss > 0:
+            self.totalProfitAmount = self.totalProfitAmount + profitLoss
+            self.totalWinningTrades = self.totalWinningTrades + 1
+        else:
+            self.totalEntryStopTrades = self.totalEntryStopTrades + 1
+        self.totalpnL = self.totalpnL + profitLoss
+        self.resultDataMonthly = self.__createMonthlyStatsInfo(resultDatas, self.totalpnL, self.totalProfitAmount, self.totalWinningTrades, self.totalLossAmount, self.totalLosingTrades, self.totalEntryStopTrades)
+        self.write_csv_data.writeCsv(self.resultDataMonthly, month, year)
 
         
         

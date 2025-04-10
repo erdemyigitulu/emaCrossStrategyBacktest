@@ -14,7 +14,6 @@ class DataProcessor :
 
     def getData(self , month , year):
         path15m = self.candles_data_access.get15mCsvPath(month , year)
-        input(path15m)
         with open(path15m) as csv_file:
             csvReader = csv.reader(csv_file, delimiter=",")
             closeTimeDatas = []
@@ -22,16 +21,16 @@ class DataProcessor :
             candleDatas = []
             for row in csvReader:
                 candle = row
-                openTimeData = {
-                    "timeStamp": int(row[0]),
-                    "openTime": float(row[1])
-                }
+               # openTimeData = {
+               #     "timeStamp": int(row[0]),
+               #     "openTime": float(row[1])
+               # }
                 closeTimeData = {
                     "timeStamp": int(row[0]),
                     "closeTime": float(row[4])
                 }
                 closeTimeDatas.append(closeTimeData)
-                openTimeDatas.append(openTimeData)
+                #openTimeDatas.append(openTimeData)
                 candleDatas.append(candle)
             csv_file.close()
             return openTimeDatas, candleDatas , closeTimeDatas

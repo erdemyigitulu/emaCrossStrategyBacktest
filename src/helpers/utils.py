@@ -5,10 +5,10 @@ from data_access.candles_data_access import CandlesDataAccess
 
 class Utils:
 
-    def __init_ (self):
-        self.candles_data_access = CandlesDataAccess
+    def __init__ (self):
+        self.candles_data_access = CandlesDataAccess()
 
-    def __convertCsvToParquet(self , month, year):
+    def __convertCsvToParquet(self,month, year):
         csv = self.candles_data_access.get1sCsvPath(month , year)
         parquet = self.candles_data_access.get1sParquetPath(month , year)
         if not os.path.exists(parquet):
@@ -27,6 +27,6 @@ class Utils:
         return data1s
     
     def get1sData (self, month, year):
-        _1sData = self.__convertCsvToParquet(self , month, year)
+        _1sData = self.__convertCsvToParquet(month, year)
         return _1sData
 

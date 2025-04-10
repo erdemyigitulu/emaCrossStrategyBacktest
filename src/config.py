@@ -1,6 +1,5 @@
-
-class Config :
-    def __init_ (self):
+class Config:
+    def __init__(self):
         self.daysOfEma = [5,8,13]
         self.years = [2020, 2021, 2022, 2023, 2024]
         self.months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
@@ -14,6 +13,10 @@ class Config :
     def __settingsStages(self):  #Değerler yüzde olarak verilmiştir.
         self.stopLossPnl = -0.2
         self.entryStopPnl = 0.04
+        #Porsiyon değerleri yüzde olarak verilmiştir. 3 stage in porsiyon oranlarının toplamı 1 olmak zorundadır.
+        self.stage1SellPortion = 0.5  #Ana işlemde stage 1'de satış yapılırken kullanılacak satış oranı 
+        self.stage2SellPortion = 0.25 #Ana işlemde stage 2'de satış yapılırken kullanılacak satış oranı 
+        self.stage3SellPortion = 0.25 #Ana işlemde stage 3'de satış yapılırken kullanılacak satış oranı 
         self.stage1StartPnl = 0.2
         self.stage2StartPnl = 0.5
         self.stage3StartPnl = 1

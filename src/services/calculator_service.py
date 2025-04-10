@@ -20,20 +20,20 @@ class CalculaterService:
             emaValues.append(ema)
         return emaValues
 
-    def calculateAvaregePrice(processes):
+    def calculateAvaregePrice(self, processes):
         totalCost = sum(price * amount for price, amount in processes)
         totalAmount = sum(amount for _, amount in processes)
         average = totalCost / totalAmount
         return average, totalAmount
 
-    def percentageIncrease(firstValue, SecondValue, signal):
+    def percentageIncrease(self,firstValue, SecondValue, signal):
         percentage = ((SecondValue - firstValue) / firstValue) * 100
         percentage = round(percentage, 2)
         if signal == "short":
             percentage = -(percentage)
         return percentage
 
-    def moneyProfitLossFunc(profitLoss, money, pnL, portion):
+    def moneyProfitLossFunc(self,profitLoss, money, pnL, portion):
         if profitLoss == 0:
             profitLoss = ((money * (100 + pnL) / 100) - money) * portion
             print(profitLoss)

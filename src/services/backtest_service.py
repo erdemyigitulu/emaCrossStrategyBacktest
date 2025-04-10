@@ -1,11 +1,10 @@
-import json
 from services.signal_service import SignalService
 from helpers.utils import Utils      
 from data_access.candles_data_access import CandlesDataAccess
-from src.config import Config
+from config import Config
 from services.data_processor import DataProcessor
 from services.engine import Engine
-
+from services.information_service import InformationService
 
 
 class BacktestService:
@@ -15,6 +14,11 @@ class BacktestService:
         self.data_processor = DataProcessor()
         self.utils = Utils()
         self.config = Config()
+        self.information_service = InformationService()
+        self.totalPnL = 0
+        self.totalProfit = 0
+        self.totalLoss = 0
+        self.totalEntryStop = 0
 
 
 
@@ -30,13 +34,14 @@ class BacktestService:
                     try:
                         engine.nextSignal = signals[(index + 2)][1]
                     except:
+                        print("Error in nextSignal")
                         break
                     engine.pushSignalData(signal , data1s)
-                    for _1sdata in data1s[engine.startIndex:]:
+                    for dataOf1s in data1s[engine.startIndex:]:
                         engine.findpurhasedProcessesData()
-                        engine.pushVariableValues(_1sdata)
+                        engine.pushVariableValues(dataOf1s)
                         engine.engineAlgoritm()
                         if engine.closeEngine :
                             break
-                    engine.monthlyStats(month , year)
+                    self.information_service.monthlyStats(engine.resultDatas, engine.profitLoss, month , year)
 

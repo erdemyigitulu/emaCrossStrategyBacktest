@@ -1,11 +1,11 @@
-from src.config import Config
-from data_processor import DataProcessor
-from calculator_service import CalculaterService
-from information_service import InformationService
+from config import Config
+from services.data_processor import DataProcessor
+from services.calculator_service import CalculaterService
+from services.information_service import InformationService
 from data_access.write_csv_data import WriteCsvData
 
 class Engine():
-    def __init__ (self):
+    def __init__(self):
         self.__startProcessData() 
         self.__startVariables()
         self.__startStatsCount()
@@ -15,9 +15,8 @@ class Engine():
         self.config = Config()
         self.information_service = InformationService()
         self.write_csv_data = WriteCsvData()
-
-#-----------------------------------------------------------------------------------------------------------------------------
-#Engine start configuration
+        #self.database_service = DatabaseService()
+        #self.experimentId = self.database_service.saveExperimentParameters()
 
     def __startProcessData(self):
         self.buyPoints = []
@@ -30,61 +29,62 @@ class Engine():
         self.currentValue = 0
         self.pnL = 0
         self.avaregePrice = 0
+        self.portion = 1
         self.purchasedPoints = []
 
     def __startStatsCount(self):
         self.totalpnL = 0
-        self.profit = 0
-        self.loss = 0
-        self.entryStopsCount = 0
-        self.profitsCount = 0
-        self.lossesCount = 0
+        self.totalProfitAmount = 0
+        self.totalLossAmount = 0
+        self.totalEntryStopTrades = 0
+        self.totalWinningTrades = 0
+        self.totalLosingTrades = 0
         self.profitLoss = 0
         self.portion = 1
         self.nextSignal = 0
-        self.resultDatas = []
+        self.resultDatas = {}
+        self.resultDataMonthly = {}
         self.messages = []
 
-    def pushSignalData(self ,signal , data1s):
-        self.purchasedPoints = [()]
-        self.signalSide = signal[0]
-        self.signalData = signal
-        self.data1s = data1s
-        self.__createStartValues()
-
-    def __createStartValues(self) :
-        self.buyPoints , self.startIndex , self.entryPrice , self.startProcessTimestamp = self.data_processor.getBuyPoints(self.signalData , self.data1s)
-        entryPoint = (self.entryPrice , self.config.totalEntryAmount)
-        self.purchasedPoints.append(entryPoint)
-
-    def __pushAlgoVariables (self):
+    def __pushAlgoVariables(self):
         self.tradesList = []
         self.entryStopPoint = False
         self.stopLossPointPoint = False
         self.sellPoint1 = False
         self.sellPoint2 = False
         self.sellPoint3 = False
-        self.protectProcess1 = False
+        self.protectProcess1  = False
         self.increaseStopPoint1 = False
         self.increaseStopPoint2 = False
         self.increaseStopPoint3 = False
         self.isEmaSideChange = False
+        self.closeEngine = False
         self.__stageInfo()
 
     def __stageInfo(self):
         self.stage1Start = True
         self.stage2Start = False
         self.stage3Start = False
-        self.stage1Phase1 = False
         self.stage3Phase1 = False
         self.stage3Phase2 = False
         self.stage3Phase3 = False
         self.stage1isActivated = False
         self.stage2isActivated = False
-# --------------------------------------------------------------------------------------------------------------------------
-# While engine is working
 
-    def findpurhasedProcessesData (self):
+    def pushSignalData(self, signal, data1s):
+
+        self.signalSide = signal[0]
+        self.signalTimestamp = signal[1]
+        self.signalData = signal
+        self.data1s = data1s
+        self.__createStartValues()
+
+    def __createStartValues(self):
+        self.buyPoints, self.startIndex, self.entryPrice, self.startProcessTimestamp = self.data_processor.getBuyPoints(self.signalData, self.data1s)
+        entryPoint = (self.entryPrice, self.config.totalEntryAmount)
+        self.purchasedPoints.append(entryPoint)
+
+    def findpurhasedProcessesData(self):
         for point in self.buyPoints:
             if not (point, self.config.seperatedMoneyAmount) in self.purchasedPoints:
                 if self.currentValue <= point and self.signalSide == "long":
@@ -102,7 +102,6 @@ class Engine():
     def __stage1(self):
         self.stopLossPoint = True
         self.sellPoint1 = True
-        self.stage1Phase1 = True
 
     def __stage2(self):
         self.stopLossPoint = False
@@ -127,72 +126,101 @@ class Engine():
             self.increaseStopPoint3 = True
             self.stage3Phase3 = True
     
-    def engineAlgoritm (self) :
+    def engineAlgoritm(self):
         self.__stageController()
         if self.stopLossPoint and self.pnL <= self.config.stopLossPnl:
-            self.__extractResultDatas ("stopLoss")
+            self.__extractResultDatas("stopLoss")
             self.closeEngine = True
 
         if self.entryStopPoint and self.pnL <= self.config.entryStopPnl:
-            self.__extractResultDatas ("entryStop")
+            self.__extractResultDatas("entryStop")
+            if not self.portion == 1:
+                self.portion = self.portion - self.config.stage1SellPortion
             self.closeEngine = True
-        
+                  
         if self.stage1Start and self.sellPoint1 and self.pnL >= self.config.stage1StartPnl and not self.stage1isActivated:
-           self.__extractResultDatas ("stage1")
-           self.stage1isActivated = False
+            self.__extractResultDatas("stage1")
+            self.portion = self.portion - self.config.stage1SellPortion
+            self.stage1isActivated = True
 
         if self.stage2Start and self.sellPoint2 and self.pnL >= self.config.stage2StartPnl and not self.stage2isActivated:
-            self.__extractResultDatas ("stage2")
-            self.stage2isActivated = False
+            self.__extractResultDatas("stage2")
+            self.portion = self.portion - self.config.stage2SellPortion
+            self.stage2isActivated = True
         
         if self.stage3Start and self.sellPoint3 and self.pnL >= self.config.stage3StartPnl:
-            self.__extractResultDatas ("stage3")
+            self.__extractResultDatas("stage3")
+            self.portion = self.portion - self.config.stage3SellPortion
             self.closeEngine = True
 
         if self.increaseStopPoint1 and self.pnL == self.config.increaseStopPoint1Pnl:
-            self.__extractResultDatas ("increaseStopPoint1")
+            self.__extractResultDatas("increaseStopPoint1")
+            self.portion = self.portion - self.config.stage3SellPortion
             self.closeEngine = True
 
         if self.increaseStopPoint2 and self.pnL <= self.config.increaseStopPoint2Pnl:
-            self.__extractResultDatas ("increaseStopPoint2")
+            self.__extractResultDatas("increaseStopPoint2")
+            self.portion = self.portion - self.config.stage3SellPortion
             self.closeEngine = True
 
         if self.increaseStopPoint3 and self.pnL <= self.config.increaseStopPoint3Pnl:
-            self.__extractResultDatas ("increaseStopPoint3")
+            self.__extractResultDatas("increaseStopPoint3")
+            self.portion = self.portion - self.config.stage3SellPortion
             self.closeEngine = True
 
-        if self.currentTimeStamp > self.nextSignal + 900000:
-            self.__extractResultDatas ("cameNewSignal")
+        if self.currentTimestamp > self.nextSignal + 900000:
+            self.__extractResultDatas("cameNewSignal")
             self.closeEngine = True
 
     def __stageController(self):
         if self.stage1Start:
             self.__stage1()
-        elif self.stage2Start :
+        elif self.stage2Start:
             self.__stage2()
         elif self.stage3Start:
             self.__stage3()
-        else :
+        else:
             print("not active stage")
 
-# --------------------------------------------------------------------------------------------------------------------------
-# Engine's work is done
+    def __extractResultDatas(self, informationOfStage):
+        self.profitLoss = self.calculator_service.moneyProfitLossFunc(self.profitLoss, self.totalAmount, self.pnL, self.portion)
+        message = self.information_service.informationHead(informationOfStage)
+        self.messages.append(message)
+        purchasedPointsInfo = "".join(
+                        [f"({x[0]}, {x[1]})" for x in self.purchasedPoints]
+                    )
+        
+        # Save signal result to database
+        self.resultDatas = {
+            'signalTimestamp': self.signalTimestamp,
+            'signalType': self.signalSide,
+            'entryPrice': self.entryPrice,
+            'exitPrice': self.currentValue,
+            "purchasedPoints": purchasedPointsInfo,
+            'profitLoss': self.profitLoss,
+            'exitReason': self.messages,
+            'stage1Activated': self.stage1Start,
+            'stage2Activated': self.stage2Start,
+            'stage3Activated': self.stage3Start,
+            'stage3Phase1': self.stage3Phase1,
+            'stage3Phase2': self.stage3Phase2,
+            'stage3Phase3': self.stage3Phase3,
+            'totalAmount': self.totalAmount
+        }
+        #self.database_service.saveSignalResult(self.experimentId, self.resultDatas )
+        
+        # Save monthly stats to database
+        #statsData = {
+        #    'year': year,
+        #    'month': month,
+        #    'totalPnl': self.totalpnL,
+        #    'totalProfitAmount': self.totalProfitAmount,
+        #    'totalLossAmount': self.totalLossAmount,
+        #    'profitCount': self.totalWinningTrades,
+        #    'lossCount': self.totalLosingTrade,
+        #    'entryStopCount': self.totalEntryStopTrades
+        #}
+        #self.database_service.saveMonthlyStats(self.experimentId, statsData)
 
-    def __extractResultDatas (self, message) :
-        self.profitLoss = self.calculator_service.moneyProfitLossFunc(self.profitLoss, self.totalAmount, self.pnL, 0.25)
-        self.resultDatas = self.information_service.createProcessInfo(message, self.signalSide, (self.signal)[1], self.startProcessTimestamp, self.profitLoss, self.totalAmount, self.currentTimestamp, self.purchasedPoints, self.messages)
-
-    def monthlyStats(self , month , year):
-        if self.profitLoss < 0:
-            self.loss = self.loss + self.profitLoss
-            self.lossesCount = self.lossesCount + 1
-        elif self.profitLoss > 0:
-            profit = profit + self.profitLoss
-            profitsCount = profitsCount + 1
-        else:
-            self.entryStopsCount = self.entryStopsCount + 1
-        totalpnL = totalpnL + self.profitLoss
-        resultData=[]
-        self.resultDatas = resultData
-        self.resultDatas = self.information_service.createMonthlyStatsInfo(resultData , self.totalpnL, self.profit, self.profitsCount, self.loss, self.lossesCount, self.entryStopsCount)
-        self.write_csv_data.writeCsv(self.resultDatas, month, year)
+    #def __del__(self):
+    #    self.database_service.close()

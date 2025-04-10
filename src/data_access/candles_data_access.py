@@ -16,6 +16,7 @@ class CandlesDataAccess:
         return _15mCsvPath
     
     def get1sCsvPath(self , month , year) :
+        print(month, year)
         _ , date1s = self.getFileNamesWithDate(month , year)
         _1sCsvPath = f"C:\\Users\\ERDO\\Desktop\\emaCrossStrategyBacktest\\backTestDatas\\datas\\BTC\\1s\\{date1s}\\{date1s}.csv"
         return _1sCsvPath
