@@ -1,6 +1,4 @@
-# /main.py
-from services.backtest_service import BacktestService
-
+from core.backtest_service import BacktestService
 
 def main():
     backtest_service = BacktestService()
@@ -9,4 +7,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
