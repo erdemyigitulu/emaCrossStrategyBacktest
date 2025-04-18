@@ -29,7 +29,7 @@ class PositionManager:
     def update(self, currentValue, signalSide):
         for point in self.buyPoints:
             if (point, self.config.seperatedMoneyAmount) in self.purchasedPoints:
-                continue
+                break
             if signalSide == "long" and currentValue <= point:
                 self.purchasedPoints.append((point, self.config.seperatedMoneyAmount))
             elif signalSide == "short" and currentValue >= point:

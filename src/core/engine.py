@@ -15,8 +15,9 @@ class Engine:
         self.signal = None
         self.signalSide = None
         self.result = None
+        self.pastpnL = 0
+        self.pnL = 0
         self.sellPortion = 1
-        self.shouldClose = True
 
     def pushSignalData(self, signal, data1s):
         self.signal = signal
@@ -24,80 +25,68 @@ class Engine:
         self.position_manager.initialize(signal, data1s)
 
     def process(self, data1s, nextSignalTimestamp):
+        self.stage_controller.stageControllerReset()
         for data in data1s[self.position_manager.startIndex:]:
-            currentTimestamp = data["OpenTime"]
+            currentTimestamp = int(data[0])
             self.pnl_manager.update(
                 averagePrice=self.position_manager.averagePrice,
                 currentData=data,
-                signalSide=self.signalSide
+                signalType=self.signalSide
             )
+            self.pnL = self.pnl_manager.currentPnL
+            self.position_manager.totalAmount -= self.position_manager.totalAmount * self.sellPortion
 
             self.position_manager.update(
                 currentValue=self.pnl_manager.currentValue,
                 signalSide=self.signalSide
             )
-
             self._runStageLogic(nextSignalTimestamp,currentTimestamp)
-
-            if self.closeEngine:
+            if self.closeEngine :
                 break
 
-    def _runStageLogic(self, nextSignalTimestamp , currentTimestamp):
-        stageResults = self.stage_controller.updateStages(self.pnl_manager.pnl,nextSignalTimestamp , currentTimestamp )
+    def _runStageLogic(self, nextSignalTimestamp, currentTimestamp):
+        stageResults, self.closeEngine = self.stage_controller.updateStages(
+            self.pnl_manager.currentPnL,
+            nextSignalTimestamp,
+            currentTimestamp
+        )
 
-        if "stage1" in stageResults:
-            self.sellPortion = self.sellPortion - self.config.stage1SellPortion
-            self._logExit("stage1")
-            self.closeEngine = False
-
-        if "stage2" in stageResults:
-            self.sellPortion = self.sellPortion - self.config.stage2SellPortion
-            self._logExit("stage2")
-            self.closeEngine = False
-            
-        if "stage3" in stageResults:
-            self._logExit("stage3")
-            self.closeEngine = True
-
-        if "phase1" in stageResults:
-            self._logExit("increaseStopPoint1")
-            self.closeEngine = True
-
-        if "phase2" in stageResults:
-            self._logExit("increaseStopPoint2")
-            self.closeEngine = True
-
-        if "phase3" in stageResults:
-            self._logExit("increaseStopPoint3")
-            self.closeEngine = True
-
-
+        for reason in [
+            "stopLoss", "entryStop", "cameNewSignal",
+            "stage1", "stage2", "stage3",
+            "phase1", "phase2", "phase3"
+        ]:
+            if reason in stageResults:
+                if reason == "stage1":
+                    self.sellPortion = max(0, self.sellPortion - self.config.stage1SellPortion)
+                elif reason == "stage2":
+                    self.sellPortion = max(0, self.sellPortion - self.config.stage2SellPortion)
+                self._logExit(reason)
+                break
 
     def _logExit(self, reason):
-
         stageInfo = self.stage_controller.getStageInfo()
-
+        self.pnl_manager.registerPastPnL()
+        self.pnl_manager.calculateProcessPnL(
+            self.position_manager.averagePrice, 
+            self.pnl_manager.currentValue, 
+            self.position_manager.totalAmount, 
+            self.sellPortion, 
+            self.signalSide
+            )
+        
         self.result = self.result_builder.buildResult(
             signal=self.signal,
             averagePrice=self.position_manager.averagePrice,
             purchasedPoints=self.position_manager.purchasedPoints,
-            profitLoss=self._calculateMoneyPnL(),
+            profitLoss=self.pnl_manager.processPnL,
             exitReason=reason,
             currentValue=self.pnl_manager.currentValue,
             currentTimestamp=self.pnl_manager.currentTimestamp,
             totalAmount=self.position_manager.totalAmount,
             stageInfo=stageInfo
         )
-
-        print(f"🚪 EXIT: {reason} @ {self.pnl_manager.pnl:.2f}%")
-
-
-    def _calculateMoneyPnL(self):
-        entry = self.position_manager.averagePrice
-        current = self.pnl_manager.currentValue
-        total = self.position_manager.totalAmount
-        pnl_percent = self.pnl_manager.pnl
-        return ((current - entry) / entry) * total if total > 0 else 0
+        self.pnl_manager.pastPnL += self.pnl_manager.processPnL
 
 
     

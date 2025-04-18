@@ -5,10 +5,12 @@ class ResultBuilder:
     def buildResult(self, signal, averagePrice, purchasedPoints, profitLoss,
                     exitReason, currentValue, currentTimestamp, totalAmount, stageInfo):
 
+        profitLoss = profitLoss - (averagePrice * 0.04 / 100) 
+
         purchasedPointsInfo = "".join([f"({x[0]}, {x[1]})" for x in purchasedPoints])
 
         result = {
-            'signalTimestamp': signal[1],
+            'signalTimestamp':int(signal[1]),
             'signalType': signal[0],
             'entryPrice': signal[2] if len(signal) > 2 else averagePrice,
             'exitPrice': currentValue,

@@ -8,8 +8,7 @@ class SignalService:
     def __getSignalsTime(self, firstSignalSide, df):
         signalDatas = []
         signalDatas.append(firstSignalSide)
-
-        ema_periods = self.config.daysOfEma  # Örneğin: [5, 8, 13]
+        ema_periods = self.config.daysOfEma 
         if len(ema_periods) < 3:
             raise ValueError("En az 3 EMA değeri olmalı")
 

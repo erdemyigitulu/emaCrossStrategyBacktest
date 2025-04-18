@@ -18,7 +18,7 @@ class Config:
         self.stage1SellPortion = 0.5  #Ana işlemde stage 1'de satış yapılırken kullanılacak satış oranı 
         self.stage2SellPortion = 0.25 #Ana işlemde stage 2'de satış yapılırken kullanılacak satış oranı 
         self.stage3SellPortion = 0.25 #Ana işlemde stage 3'de satış yapılırken kullanılacak satış oranı 
-        self.stage1StartPnl = 0.2
+        self.stage1StartPnl = 0.3
         self.stage2StartPnl = 0.5
         self.stage3StartPnl = 1
         self.increaseStopPoint1Pnl = 0.19
