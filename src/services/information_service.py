@@ -47,5 +47,7 @@ class InformationService:
 
     def monthlyStats(self, resultData, profitLoss, month, year):
         self._updateStats(profitLoss)
+        print(resultData)
         enrichedResult = self._prepareMonthlyStats(resultData)
+        input(enrichedResult)
         self.write_csv_data.writeCsv(enrichedResult, month, year)

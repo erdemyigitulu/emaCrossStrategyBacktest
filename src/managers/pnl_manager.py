@@ -1,13 +1,12 @@
-
 class PnLManager:
     def __init__(self):
         self.currentPnL = 0
         self.currentValue = 0
         self.currentTimestamp = 0
-        self.processPnL = 0
-        self.pastPnL = 0
+        self.processPnL = 0  # tek seferlik işlem PnL’i
+        self.pastPnL = 0     # toplam birikmiş PnL
 
-    def update(self, averagePrice, currentData, signalType):
+    def updatePnL(self, averagePrice, currentData, signalType):
         self.currentTimestamp = int(currentData[0])
         self.currentValue = currentData[1]
         self.currentPnL = self._calculateCurrentPnL(averagePrice, self.currentValue, signalType)
@@ -22,7 +21,7 @@ class PnLManager:
 
     def calculateProcessPnL(self, entry, current, amount, portion, signalType):
         if entry == 0 or amount == 0:
-            return round(self.pastPnL, 2)
+            return 0
 
         if signalType == "short":
             rawPnL = (entry - current) / entry * amount
@@ -30,12 +29,9 @@ class PnLManager:
             rawPnL = (current - entry) / entry * amount
 
         currentProcessPnL = round(rawPnL * portion, 2)
+        self.processPnL = currentProcessPnL  # sadece bu seferlik PnL
+        return currentProcessPnL
 
-        self.pastPnL = self.processPnL  # geçmiş değeri sakla
-        self.processPnL = currentProcessPnL + round(self.pastPnL, 2)
-
-        return self.processPnL
-
-    def registerPastPnL(self):
-        if self.processPnL != 0:
-            self.pastPnL = self.processPnL
+    def registerPastPnL(self, entry, current, amount, portion, signalType):
+        current = self.calculateProcessPnL(entry, current, amount, portion, signalType)
+        self.pastPnL += current

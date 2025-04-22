@@ -1,6 +1,5 @@
 from indicators.base_indicator import BaseIndicator
 
-
 class ExponentialMovingAverageIndicator(BaseIndicator):
     def __init__(self):
         super().__init__()

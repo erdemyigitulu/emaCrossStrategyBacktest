@@ -79,12 +79,6 @@ class StageController:
 
         return results, self.closeEngine
 
-    def isStopLossActive(self):
-        return self.stopLoss
-
-    def isEntryStopActive(self):
-        return self.entryStop
-
     def getStageInfo(self):
         return {
             "stage1": self.stage1Start,

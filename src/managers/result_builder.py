@@ -6,7 +6,6 @@ class ResultBuilder:
                     exitReason, currentValue, currentTimestamp, totalAmount, stageInfo):
 
         profitLoss = profitLoss - (averagePrice * 0.04 / 100) 
-
         purchasedPointsInfo = "".join([f"({x[0]}, {x[1]})" for x in purchasedPoints])
 
         result = {
@@ -18,7 +17,7 @@ class ResultBuilder:
             "purchasedPoints": purchasedPointsInfo,
             "averagePrice": averagePrice,
             "profitLoss": profitLoss,
-            "exitReason": exitReason,
+            "exitReason": ",".join(exitReason) if exitReason else "",
             'stage1Activated': stageInfo.get("stage1", False),
             'stage2Activated': stageInfo.get("stage2", False),
             'stage3Activated': stageInfo.get("stage3", False),
@@ -27,5 +26,4 @@ class ResultBuilder:
             'stage3Phase3': stageInfo.get("phase3", False),
             'totalAmount': totalAmount
         }
-
         return result

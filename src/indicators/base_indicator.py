@@ -1,7 +1,5 @@
-import pandas as pd
 from data_paths.candles_data_access import CandlesDataAccess
 from config.config import Config
-import ta
 
 
 class BaseIndicator():
@@ -11,19 +9,28 @@ class BaseIndicator():
         self.df = None
         self.indicators = []
 
-    def addIndicator(self, indicator):
+    def _addIndicator(self, indicator):
         self.indicators.append(indicator)
 
-    def addIndicatorDatas(self, month, year):
-        path = self.candles_data_access.get15mCsvPath(month, year)
-        self.df = pd.read_csv(path , names=self.config.COLUMN_NAMES)
+    def _importIndicatorsFromConfig(self):
+        for className in self.config.USED_INDICATORS:
+            modulePath = self.config.INDICATOR_MAP[className]
+            module = __import__(modulePath, fromlist=[className])
+            indicatorModule = getattr(module, className)
+            self._addIndicator(indicatorModule())
 
-    def calculateAll(self):
+    def _calculateAll(self):
         for indicator in self.indicators:
             indicator.df = self.df
             indicator.calculate()
         self.df = self.df.iloc[self.config.cleanRowCount:].copy()
         return self.df
+    
+    def applyIndicators(self, df):
+        self.df = df
+        self._importIndicatorsFromConfig()
+        return self._calculateAll()
+
 
 
         
