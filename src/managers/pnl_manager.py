@@ -29,7 +29,7 @@ class PnLManager:
             rawPnL = (current - entry) / entry * amount
 
         currentProcessPnL = round(rawPnL * portion, 2)
-        self.processPnL = currentProcessPnL  # sadece bu seferlik PnL
+        self.processPnL = currentProcessPnL
         return currentProcessPnL
 
     def registerPastPnL(self, entry, current, amount, portion, signalType):

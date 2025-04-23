@@ -1,11 +1,9 @@
-from data_paths.candles_data_access import CandlesDataAccess
 from config.config import Config
 
 
 class BaseIndicator():
-    def __init__(self):
-        self.config = Config()
-        self.candles_data_access = CandlesDataAccess()
+    def __init__(self,config:Config):
+        self.config = config
         self.df = None
         self.indicators = []
 

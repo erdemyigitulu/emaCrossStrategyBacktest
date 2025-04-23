@@ -1,5 +1,8 @@
+from config.config import Config
+
+
 class ResultBuilder:
-    def __init__(self, config):
+    def __init__(self, config : Config):
         self.config = config
 
     def buildResult(self, signal, averagePrice, purchasedPoints, profitLoss,

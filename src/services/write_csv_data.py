@@ -1,13 +1,13 @@
 import json
 import os
-from data_paths.candles_data_access import CandlesDataAccess
+from data_paths.path_provider import PathProvider
 
 class WriteCsvData:
-    def __init__(self):
-        self.candles_data_access = CandlesDataAccess()
+    def __init__(self, path_provider:PathProvider):
+        self.path_provider = path_provider()
 
     def writeCsv(self, resultData, month, year):
-        result_path = self.candles_data_access.getResultsPath(month, year)
+        result_path = self.path_provider.getResultsPath(month, year)
         existing_data = []
 
         if os.path.exists(result_path):

@@ -1,11 +1,6 @@
-from core.backtest_service import BacktestService
-
-def main():
-    backtest_service = BacktestService()
-    backtest_service.startBacktest()
-
+from container import Container
 
 if __name__ == "__main__":
-    main()
-
-
+    container = Container()
+    orchestrator = container.build_backtest()
+    orchestrator.run()

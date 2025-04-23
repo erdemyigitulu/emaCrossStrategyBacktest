@@ -1,9 +1,9 @@
 from services.write_csv_data import WriteCsvData
 
 class InformationService:
-    def __init__(self):
+    def __init__(self, write_csv_data: WriteCsvData):
         self.message = ""
-        self.write_csv_data = WriteCsvData()
+        self.write_csv_data = write_csv_data
 
         self.totalPnL = 0
         self.totalProfitAmount = 0

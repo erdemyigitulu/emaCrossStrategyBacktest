@@ -1,9 +1,11 @@
 
-
+from config.config import Config
+from services.entry_points_generator import EntryPointGenerator
 
 class PositionManager:
-    def __init__(self, config):
+    def __init__(self, config : Config , entry_point_generator: EntryPointGenerator):
         self.config = config
+        self.entry_point_generator = entry_point_generator
         self.purchasedPoints = []
         self.buyPoints = []
         self.entryPrice = 0
@@ -20,17 +22,15 @@ class PositionManager:
         timestampColumn = data1s[:, 0]
         filtered_indices = (timestampColumn >= self.startProcessTimestamp).nonzero()[0]
         if filtered_indices.size == 0 or nextSignalTimestamp == "inf":
-            input("initialize içindeyim")
             print(f"[CARRY-OVER] Signal cannot be processed because there is insufficient data: {self.startProcessTimestamp}")
             self.isCarryOver = True 
-            print()
             return
         else:
             self.startIndex = int(filtered_indices[0])
             self.isCarryOver = False
 
         self.entryPrice = data1s[self.startIndex][1]
-        self.buyPoints = self._findBuyPoints(self.entryPrice, signalSide)
+        self.buyPoints = self.entry_point_generator.getBuyPoints(self.entryPrice, signalSide)
         entry = (self.entryPrice, self.config.totalEntryAmount)
         self.purchasedPoints.append(entry)
         self._updateAveragePrice()

@@ -1,6 +1,6 @@
 import os
     
-class CandlesDataAccess:
+class PathProvider:
     def __init__(self):
         self.BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 

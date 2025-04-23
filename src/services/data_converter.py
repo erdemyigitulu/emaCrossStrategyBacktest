@@ -1,16 +1,16 @@
 import pandas as pd
 import os
 import numpy as np
-from data_paths.candles_data_access import CandlesDataAccess
+from data_paths.path_provider import PathProvider
 
 class DataConverter:
 
-    def __init__ (self):
-        self.candles_data_access = CandlesDataAccess()
+    def __init__ (self, path_provider:PathProvider):
+        self.path_provider = path_provider
 
     def __convertCsvToParquet(self,month, year):
-        csv = self.candles_data_access.get1sCsvPath(month , year)
-        parquet = self.candles_data_access.get1sParquetPath(month , year)
+        csv = self.path_provider.get1sCsvPath(month , year)
+        parquet = self.path_provider.get1sParquetPath(month , year)
         if not os.path.exists(parquet):
             df = pd.read_csv(csv, usecols=[0, 1])
             df.to_parquet(parquet, index=False)

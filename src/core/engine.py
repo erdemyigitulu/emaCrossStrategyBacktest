@@ -5,12 +5,12 @@ from managers.result_builder import ResultBuilder
 from managers.stage_controller import StageController
 
 class Engine:
-    def __init__(self):
-        self.config = Config()
-        self.stage_controller = StageController(self.config)
-        self.position_manager = PositionManager(self.config)
-        self.result_builder = ResultBuilder(self.config)
-        self.pnl_manager = PnLManager()
+    def __init__(self, config: Config , stage_controller: StageController, position_manager: PositionManager, result_builder: ResultBuilder, pnl_manager: PnLManager):
+        self.config = config
+        self.stage_controller = stage_controller
+        self.position_manager = position_manager
+        self.result_builder = result_builder
+        self.pnl_manager = pnl_manager
         self.closeEngine = False
         self.signal = None
         self.signalSide = None
@@ -20,15 +20,17 @@ class Engine:
         self.pnL = 0
         self.sellPortion = 1
 
-    def pushSignalData(self, signal, data1s,nextSignalTimestamp):
+    def pushSignalData(self, signal, data1s, nextSignalTimestamp):
         self.signal = signal
-        self.signalSide = signal[0]
+        self.signalSide = signal["side"]
         self.position_manager.initialize(signal, data1s, nextSignalTimestamp)
         self.isCarryOver = self.position_manager.isCarryOver
         if self.isCarryOver :
             self.carrySignal = signal
             self.carryReason = "late_entry"
             input("push data içindeyim")
+
+
 
     def process(self, data1s, nextSignalTimestamp):
         self.stage_controller.stageControllerReset()

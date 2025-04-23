@@ -1,11 +1,9 @@
 import numpy as np
-from data_paths.candles_data_access import CandlesDataAccess
 from services.data_converter import DataConverter
 
 class CarryOverManager:
-    def __init__(self):
-        self.candles_data_access = CandlesDataAccess()
-        self.data_converter = DataConverter()
+    def __init__(self, data_converter:DataConverter):
+        self.data_converter = data_converter
         self.isCarryOver = False
 
     def prepareCarryOverData(self, carrySignal, currentMonth, currentYear):
