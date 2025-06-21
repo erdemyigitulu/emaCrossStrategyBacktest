@@ -13,11 +13,5 @@ class BacktestOrchestrator:
                 self.runner.run_month(year, month, is_first_month)
 
 
-    def _get_next_signal_timestamp(self, signal, signals):
-        try:
-            return signals[index + 1][1]
-        except IndexError:
-            return float("inf")
-        
 
     

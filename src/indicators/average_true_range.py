@@ -2,8 +2,8 @@ from indicators.base_indicator import BaseIndicator
 import ta
 
 class AverageTrueRangeIndicator(BaseIndicator):
-    def __init__(self, period=14):
-        super().__init__()
+    def __init__(self,config, period=14):
+        super().__init__(config)
         self.period = period
         self.tr = []
         self.atr = []

@@ -1,15 +1,19 @@
 from config.config import Config
 from services.data_converter import DataConverter
 from services.information_service import InformationService
-from services.write_csv_data import WriteCsvData
-from services.entry_points_generator import EntryPointGenerator
-from core.signal_service import SignalService
+from services.result_logger import ResultLogger
+from services.buy_points_generator import BuyPointsGenerator
+from services.trade_aggregator import TradeAggregator
+from services.signal_service import SignalService
+from services.result_logger import ResultLogger
 from managers.carry_over_manager import CarryOverManager
-from managers.position_manager import PositionManager
 from managers.pnl_manager import PnLManager
 from managers.result_builder import ResultBuilder
-from managers.stage_controller import StageController
-from core.engine import Engine
+from stage_flow.stage_controller import StageController
+from stage_flow.decision_maker import DecisionMaker
+from stage_flow.result_formatter import ResultFormatter
+from stage_flow.buy_point_trigger import BuyPointTrigger
+from trade_engine.core import Engine
 from data_paths.path_provider import PathProvider
 from indicators.base_indicator import BaseIndicator
 from backtest.orchestrator import BacktestOrchestrator
@@ -21,24 +25,27 @@ class Container:
     def __init__(self):
         self.config = Config()
         self.path_provider = PathProvider()
+        self.base_indicator = BaseIndicator(config=self.config)
         self._setup_services()
         self._setup_managers()
-        self._setup_core()
+        self._setup_stage_flow()
+        self.engine_factory = self._build_engine_factory()
 
     def _setup_services (self):
-        self.data_converter = DataConverter(
-            path_provider=self.path_provider
-        )
+        self.data_converter = DataConverter(path_provider=self.path_provider)
 
-        self.entry_point_generator = EntryPointGenerator(
-            config=self.config)
+        self.buy_point_generator = BuyPointsGenerator(config=self.config)
         
-        self.write_csv_data = WriteCsvData(
-            path_provider=self.path_provider
-        )
+        self.result_logger = ResultLogger(path_provider=self.path_provider)
 
-        self.information_service = InformationService(
-            write_csv_data=self.write_csv_data
+        self.information_service = InformationService(result_logger=self.result_logger)
+
+        self.trade_aggregator = TradeAggregator()
+
+        self.signal_service = SignalService(
+            config=self.config,
+            path_provider=self.path_provider,
+            base_indicator=self.base_indicator
         )
 
     def _setup_managers (self):
@@ -46,48 +53,38 @@ class Container:
             data_converter=self.data_converter
         )
 
-        self.position_manager = PositionManager(
-            config=self.config,
-            entry_point_generator=self.entry_point_generator
-        )
-
-        self.result_builder = ResultBuilder(
-            config=self.config
-        )
-
-        self.stage_controller = StageController(
-            config=self.config
-        )
-        
         self.pnl_manager = PnLManager()
 
-    def _setup_core (self):
-        self.base_indicator = BaseIndicator(
-            config=self.config
-        )        
-        self.signal_service = self._build_signal_service()
+        self.result_builder = ResultBuilder(
+            config=self.config,
+            pnl_manager=self.pnl_manager,
+            trade_aggregator=self.trade_aggregator
+        )
 
-        self.engine_factory = self._build_engine_factory()
+    def _setup_stage_flow (self):
+
+        self.decision_maker = DecisionMaker(config=self.config)
+
+        self.result_formatter = ResultFormatter()
+
+        self.stage_controller = StageController(config=self.config,
+            result_formatter=self.result_formatter,
+            decision_maker=self.decision_maker
+        )
 
     def _build_engine_factory(self) -> Callable[[], Engine]:
         return lambda: Engine(
             config=self.config,
+            trade_aggregator=self.trade_aggregator,
+            buy_point_generator=self.buy_point_generator,
+            pnl_manager=self.pnl_manager,
             stage_controller=self.stage_controller,
-            position_manager=self.position_manager,
             result_builder=self.result_builder,
-            pnl_manager=self.pnl_manager
-        )
-
-    def _build_signal_service(self) -> SignalService:
-        return SignalService(
-            config=self.config,
-            data_processor=self.data_converter,
-            path_provider=self.path_provider,
-            base_indicator=self.base_indicator
         )
 
     def build_backtest(self) -> BacktestOrchestrator:
         processor = SignalProcessor(
+            config=self.config,
             data_converter=self.data_converter,
             carry_over_manager=self.carry_over_manager,
             information_service=self.information_service,
@@ -95,7 +92,6 @@ class Container:
         )
 
         runner = BacktestRunner(
-            data_converter=self.data_converter,
             signal_service=self.signal_service,
             signal_processor=processor
         )

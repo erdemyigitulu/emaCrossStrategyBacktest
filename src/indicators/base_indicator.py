@@ -1,3 +1,4 @@
+import importlib
 from config.config import Config
 
 
@@ -13,9 +14,9 @@ class BaseIndicator():
     def _importIndicatorsFromConfig(self):
         for className in self.config.USED_INDICATORS:
             modulePath = self.config.INDICATOR_MAP[className]
-            module = __import__(modulePath, fromlist=[className])
-            indicatorModule = getattr(module, className)
-            self._addIndicator(indicatorModule())
+            module = importlib.import_module(modulePath)
+            indicatorClass = getattr(module, className) 
+            self._addIndicator(indicatorClass(self.config))
 
     def _calculateAll(self):
         for indicator in self.indicators:

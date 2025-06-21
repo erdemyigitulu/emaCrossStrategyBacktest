@@ -1,12 +1,12 @@
-import json
 import os
+import json
 from data_paths.path_provider import PathProvider
 
-class WriteCsvData:
-    def __init__(self, path_provider:PathProvider):
-        self.path_provider = path_provider()
+class ResultLogger:
+    def __init__(self, path_provider: PathProvider):
+        self.path_provider = path_provider
 
-    def writeCsv(self, resultData, month, year):
+    def save_to_json(self, result_data: dict, month: int, year: int):
         result_path = self.path_provider.getResultsPath(month, year)
         existing_data = []
 
@@ -20,7 +20,7 @@ class WriteCsvData:
         if not isinstance(existing_data, list):
             existing_data = [existing_data]
 
-        existing_data.append(resultData)
+        existing_data.append(result_data)
 
         with open(result_path, 'w', encoding='utf-8') as file:
             json.dump(existing_data, file, indent=4, separators=(',', ': '), ensure_ascii=False)

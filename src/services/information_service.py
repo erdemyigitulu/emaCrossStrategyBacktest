@@ -1,9 +1,9 @@
-from services.write_csv_data import WriteCsvData
+from services.result_logger import ResultLogger
 
 class InformationService:
-    def __init__(self, write_csv_data: WriteCsvData):
+    def __init__(self, result_logger: ResultLogger):
         self.message = ""
-        self.write_csv_data = write_csv_data
+        self.result_logger = result_logger
 
         self.totalPnL = 0
         self.totalProfitAmount = 0
@@ -11,20 +11,6 @@ class InformationService:
         self.totalWinningTrades = 0
         self.totalLosingTrades = 0
         self.totalEntryStopTrades = 0
-
-    def informationHead(self, exitReason):
-        messages = {
-            "stopLoss": "StopLoss has came true",
-            "entryStop": "EntryStop has came true",
-            "stage1": "Stage1 is done. Some profit is got",
-            "stage2": "Stage2 is done. Some profit is got",
-            "stage3": "Stage3 is done. Some profit is got",
-            "increaseStopPoint1": "Stage3 is continuing and process is quitting in first upper entrystop point",
-            "increaseStopPoint2": "Stage3 is continuing and process is quitting in second upper entrystop point",
-            "increaseStopPoint3": "Stage3 is continuing and process is quitting in third upper entrystop point",
-            "cameNewSignal": "New signal has came and process is quitting"
-        }
-        return messages.get(exitReason, f"Unknown reason: {exitReason}")
 
     def _updateStats(self, profitLoss):
         if profitLoss < 0:
@@ -45,9 +31,7 @@ class InformationService:
         resultData["totalEntryStop"] = self.totalEntryStopTrades
         return resultData
 
-    def monthlyStats(self, resultData, profitLoss, month, year):
+    def monthlyStats(self, resultData: dict, profitLoss: float, month: int, year: int):
         self._updateStats(profitLoss)
-        print(resultData)
-        enrichedResult = self._prepareMonthlyStats(resultData)
-        input(enrichedResult)
-        self.write_csv_data.writeCsv(enrichedResult, month, year)
+        enriched_result = self._prepareMonthlyStats(resultData)
+        self.result_logger.save_to_json(enriched_result, month, year)

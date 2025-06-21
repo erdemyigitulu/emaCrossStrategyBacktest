@@ -16,9 +16,8 @@ class CarryOverManager:
 
         prev1s = self.data_converter.get1sData(prevMonth, prevYear)
         current1s = self.data_converter.get1sData(currentMonth, currentYear)
-
-        startTs = int(carrySignal[1]) + 900_000 
-        tailFromPrev = prev1s[prev1s[:, 0] >= startTs]
-        combined1s = np.concatenate([tailFromPrev, current1s], axis=0)
-        return combined1s
+        merged_data = np.concatenate([prev1s, current1s], axis=0)
+        startTs = int(carrySignal["timestamp"]) + 900_000
+        tail = merged_data[merged_data[:, 0] >= startTs]
+        return tail
 
